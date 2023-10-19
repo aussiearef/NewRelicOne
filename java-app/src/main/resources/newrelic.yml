@@ -2,6 +2,6 @@
 # Full template file: https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-config-file-template/
 
 common: &default_settings
-  license_key: YOUR_LICENSE_KEY
-  app_name: Your Application Name
+  license_key: < License Key Here >
+  app_name: Java Test
   agent_enabled: true
