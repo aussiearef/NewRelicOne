@@ -1,0 +1,7 @@
+# New Relic Configuration File For JAVA
+# Full template file: https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-config-file-template/
+
+common: &default_settings
+  license_key: YOUR_LICENSE_KEY
+  app_name: Your Application Name
+  agent_enabled: true
