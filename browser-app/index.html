@@ -4,12 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <title>Bootstrap Table Example</title>
+    <title>Combined Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
 <div class="container">
-    <h1>New Relic - Browser Monitoring App</h1>
+    <h1>Combined Example</h1>
 
     <table class="table table-bordered">
         <thead>
@@ -25,61 +26,47 @@
                 <td>John Doe</td>
                 <td>johndoe@example.com</td>
             </tr>
-            <tr>
-                <td>2</td>
-                <td>Jane Smith</td>
-                <td>janesmith@example.com</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>Bob Johnson</td>
-                <td>bjohnson@example.com</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>Alice Brown</td>
-                <td>abrown@example.com</td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td>Mary Davis</td>
-                <td>mdavis@example.com</td>
-            </tr>
-            <tr>
-                <td>6</td>
-                <td>David Wilson</td>
-                <td>dwilson@example.com</td>
-            </tr>
-            <tr>
-                <td>7</td>
-                <td>Susan Lee</td>
-                <td>susanlee@example.com</td>
-            </tr>
-            <tr>
-                <td>8</td>
-                <td>Mike White</td>
-                <td>mikewhite@example.com</td>
-            </tr>
-            <tr>
-                <td>9</td>
-                <td>Linda Harris</td>
-                <td>lharris@example.com</td>
-            </tr>
-            <tr>
-                <td>10</td>
-                <td>Tom Green</td>
-                <td>tgreen@example.com</td>
-            </tr>
+            <!-- Add more rows here -->
         </tbody>
     </table>
 
-    <button id="errorButton" class="btn btn-danger">Click to Generate Error</button>
+    <button id="generateErrorButton" class="btn btn-danger">Generate JavaScript Error</button>
+    
+    <button id="getCountryInfoButton" class="btn btn-primary mt-3">Get Country Information</button>
+    <div id="countryInfo" class="mt-2"></div>
 </div>
 
 <script>
-    document.getElementById("errorButton").addEventListener("click", function() {
+    document.getElementById("generateErrorButton").addEventListener("click", function() {
         // This code deliberately generates an error (trying to call an undefined function)
         nonExistentFunction();
+    });
+
+    document.getElementById("getCountryInfoButton").addEventListener("click", function() {
+        var countryName = 'Australia'; // Change to the country you want to get information for
+        var apiUrl = `https://restcountries.com/v2/name/${countryName}`;
+
+        $.ajax({
+            url: apiUrl,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                var countryInfo = document.getElementById("countryInfo");
+                if (response.length > 0) {
+                    countryInfo.innerHTML = `
+                        <h2>Country Information</h2>
+                        <p>Country Name: ${response[0].name}</p>
+                        <p>Capital: ${response[0].capital}</p>
+                        <p>Population: ${response[0].population}</p>
+                    `;
+                } else {
+                    countryInfo.innerHTML = "Country not found.";
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Request failed with status:", xhr.status);
+            }
+        });
     });
 </script>
 
