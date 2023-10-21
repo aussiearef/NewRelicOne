@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <title>Bootstrap Table Example</title>
+</head>
+<body>
+
+<div class="container">
+    <h1>New Relic - Browser Monitoring App</h1>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>John Doe</td>
+                <td>johndoe@example.com</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Jane Smith</td>
+                <td>janesmith@example.com</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Bob Johnson</td>
+                <td>bjohnson@example.com</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Alice Brown</td>
+                <td>abrown@example.com</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Mary Davis</td>
+                <td>mdavis@example.com</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>David Wilson</td>
+                <td>dwilson@example.com</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>Susan Lee</td>
+                <td>susanlee@example.com</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>Mike White</td>
+                <td>mikewhite@example.com</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>Linda Harris</td>
+                <td>lharris@example.com</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>Tom Green</td>
+                <td>tgreen@example.com</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button id="errorButton" class="btn btn-danger">Click to Generate Error</button>
+</div>
+
+<script>
+    document.getElementById("errorButton").addEventListener("click", function() {
+        // This code deliberately generates an error (trying to call an undefined function)
+        nonExistentFunction();
+    });
+</script>
+
+</body>
+</html>
