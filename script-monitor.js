@@ -1,7 +1,7 @@
 const { By, until } = $browser;
 
 // Define your test URL
-const testURL = "https://example.com/login";
+const testURL = "https://www.syntheticmonitor.live";
 
 // Define the credentials you want to use for testing
 const username = "your_username";
