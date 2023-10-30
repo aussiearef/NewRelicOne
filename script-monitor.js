@@ -40,6 +40,5 @@ $browser.get(testURL)
     console.error("Login failed: " + err);
   })
   .finally(() => {
-    // Close the browser
-    return $browser.quit();
+
   });
