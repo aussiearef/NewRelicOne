@@ -40,6 +40,17 @@
             <scope>provided</scope>
             <type>zip</type>
         </dependency>
+
+            <dependency>
+      <groupId>com.newrelic.telemetry</groupId>
+      <artifactId>telemetry-core</artifactId>
+      <version>0.15.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.newrelic.telemetry</groupId>
+      <artifactId>telemetry-http-okhttp</artifactId>
+      <version>0.15.0</version>
+    </dependency>
     </dependencies>
 
     <build>

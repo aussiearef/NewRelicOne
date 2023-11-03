@@ -1,3 +1,7 @@
+# Run this code with:
+# NEW_RELIC_CONFIG_FILE=./newrelic.ini newrelic-admin run-program uvicorn app:app --host 0.0.0.0 --port 8000
+
+
 from fastapi import FastAPI
 
 # Create an instance of the FastAPI app

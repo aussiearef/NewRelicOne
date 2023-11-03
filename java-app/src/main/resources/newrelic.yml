@@ -1,7 +1,11 @@
-# New Relic Configuration File For JAVA
-# Full template file: https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-config-file-template/
-
 common: &default_settings
-  license_key: < License Key Here >
-  app_name: Java Test
+  license_key: 041-Profiling.mov
+  app_name: Java Test 
   agent_enabled: true
+  profile_trace: true
+  audit_logging: true
+  jfr.enabled: true
+  services.JfrService.enabled: true
+jfr:
+  enabled: true
+
