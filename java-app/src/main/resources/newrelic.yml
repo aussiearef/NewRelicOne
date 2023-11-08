@@ -1,11 +1,11 @@
 common: &default_settings
-  license_key: 041-Profiling.mov
+  license_key: 1618405b95257f0d05a913160d2ae941FFFFNRAL
   app_name: Java Test 
   agent_enabled: true
   profile_trace: true
   audit_logging: true
-  jfr.enabled: true
-  services.JfrService.enabled: true
-jfr:
-  enabled: true
 
+logging:
+  custom:
+    - name: newrelic-log
+      file_path: log.txt
