@@ -1,0 +1,683 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+
+networks:
+  default:
+    name: opentelemetry-demo
+    driver: bridge
+
+services:
+  # ******************
+  # Core Demo Services
+  # ******************
+
+  ad:
+      image: aussiearef/newrelic:ad
+      container_name: ad
+      deploy:
+        resources:
+          limits:
+            memory: 300M
+      restart: unless-stopped
+      ports:
+        - "9555:9555"
+      environment:
+        - AD_PORT=9555
+        - FLAGD_HOST=flagd
+        - FLAGD_PORT=8013
+        - JAVA_TOOL_OPTIONS=-javaagent:/usr/src/app/opentelemetry-javaagent.jar -Xmx200m
+        - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+        - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
+        - OTEL_RESOURCE_ATTRIBUTES=service.criticality=medium
+        - OTEL_LOGS_EXPORTER=otlp
+        - OTEL_SERVICE_NAME=ad
+      depends_on:
+        otel-collector:
+          condition: service_started
+        flagd:
+          condition: service_started
+      logging: *logging
+
+  cart:
+    image: aussiearef/newrelic:cart
+    container_name: cart
+    deploy:
+      resources:
+        limits:
+          memory: 160M
+    restart: unless-stopped
+    ports:
+      - "7070:7070"
+    environment:
+      - CART_PORT=7070
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - VALKEY_ADDR=valkey-cart:6379
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=high
+      - OTEL_SERVICE_NAME=cart
+      - ASPNETCORE_URLS=http://*:7070
+    depends_on:
+      valkey-cart:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+      flagd:
+        condition: service_started
+    logging: *logging
+
+  checkout:
+    image: aussiearef/newrelic:checkout
+    container_name: checkout
+    deploy:
+      resources:
+        limits:
+          memory: 20M
+    restart: unless-stopped
+    ports:
+      - "9450:9450"
+    environment:
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - CHECKOUT_PORT=9450
+      - CART_ADDR=cart:7070
+      - CURRENCY_ADDR=currency:7001
+      - EMAIL_ADDR=email:8061
+      - PAYMENT_ADDR=payment:50051
+      - PRODUCT_CATALOG_ADDR=product-catalog:3550
+      - SHIPPING_ADDR=http://shipping:50050
+      - GOMEMLIMIT=16MiB
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=critical
+      - OTEL_SERVICE_NAME=checkout
+    depends_on:
+      cart:
+        condition: service_started
+      currency:
+        condition: service_started
+      email:
+        condition: service_started
+      payment:
+        condition: service_started
+      product-catalog:
+        condition: service_started
+      shipping:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+      flagd:
+        condition: service_started
+    logging: *logging
+
+  currency:
+    image: aussiearef/newrelic:currency
+    container_name: currency
+    deploy:
+      resources:
+        limits:
+          memory: 20M
+    restart: unless-stopped
+    ports:
+      - "7001:7001"
+    environment:
+      - CURRENCY_PORT=7001
+      - IPV6_ENABLED=false
+      - VERSION=latest
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=high
+      - OTEL_SERVICE_NAME=currency
+    depends_on:
+      otel-collector:
+        condition: service_started
+    logging: *logging
+
+  email:
+    image: aussiearef/newrelic:email
+    container_name: email
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+    restart: unless-stopped
+    ports:
+      - "8061:8061"
+    environment:
+      - APP_ENV=production
+      - EMAIL_PORT=8061
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=medium
+      - OTEL_SERVICE_NAME=email
+    depends_on:
+      otel-collector:
+        condition: service_started
+    logging: *logging
+
+  frontend:
+    image: aussiearef/newrelic:frontend
+    container_name: frontend
+    deploy:
+      resources:
+        limits:
+          memory: 250M
+    restart: unless-stopped
+    ports:
+      - "8060:8060"
+    environment:
+      - PORT=8060
+      - FRONTEND_ADDR=frontend:8060
+      - AD_ADDR=ad:9555
+      - AD_PORT=9555
+      - CART_ADDR=cart:7070
+      - CHECKOUT_ADDR=checkout:9450
+      - CURRENCY_ADDR=currency:7001
+      - PRODUCT_CATALOG_ADDR=product-catalog:3550
+      - PRODUCT_REVIEWS_ADDR=product-reviews:8084
+      - RECOMMENDATION_ADDR=recommendation:8085
+      - SHIPPING_ADDR=http://shipping:50050
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=critical
+      - ENV_PLATFORM=local
+      - OTEL_SERVICE_NAME=frontend
+      - PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:8065/otlp-http/v1/traces
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - WEB_OTEL_SERVICE_NAME=frontend-web
+      - OTEL_COLLECTOR_HOST=otel-collector
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - WEB_APP_URL=http://localhost:8065
+      - LLM_SERVICE_URL=http://llm:8000
+    depends_on:
+      ad:
+        condition: service_started
+      cart:
+        condition: service_started
+      checkout:
+        condition: service_started
+      currency:
+        condition: service_started
+      product-catalog:
+        condition: service_started
+      quote:
+        condition: service_started
+      recommendation:
+        condition: service_started
+      shipping:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+      image-provider:
+        condition: service_started
+      flagd:
+        condition: service_started
+    logging: *logging
+
+  frontend-proxy:
+    image: aussiearef/newrelic:frontend-proxy
+    container_name: frontend-proxy
+    deploy:
+      resources:
+        limits:
+          memory: 65M
+    restart: unless-stopped
+    ports:
+      - "8065:8065"
+      - "19000:19000"
+    environment:
+      - FRONTEND_PORT=8060
+      - PORT=8060
+      - FRONTEND_HOST=frontend
+      - LOCUST_WEB_PORT=8089
+      - LOCUST_WEB_HOST=load-generator
+      - OTEL_COLLECTOR_HOST=otel-collector
+      - IMAGE_PROVIDER_HOST=image-provider
+      - IMAGE_PROVIDER_PORT=8081
+      - OTEL_COLLECTOR_PORT_GRPC=4317
+      - OTEL_COLLECTOR_PORT_HTTP=4318
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=critical
+      - OTEL_SERVICE_NAME=frontend-proxy
+      - ENVOY_PORT=8065
+      - ENVOY_ADMIN_PORT=19000
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - FLAGD_UI_HOST=flagd-ui
+      - FLAGD_UI_PORT=4000
+      - TELEMETRY_DOCS_HOST=telemetry-docs
+      - TELEMETRY_DOCS_PORT=8082
+      - SHIPPING_ADDR=${SHIPPING_ADDR}
+      - SHIPPING_SERVICE_ADDR=${SHIPPING_ADDR}
+    depends_on:
+      frontend:
+        condition: service_started
+      load-generator:
+        condition: service_started
+      flagd-ui:
+        condition: service_started
+      telemetry-docs:
+        condition: service_started
+      grafana:
+        condition: service_started
+      jaeger:
+        condition: service_started
+
+
+  image-provider:
+    image: aussiearef/newrelic:image-provider
+    container_name: image-provider
+    deploy:
+      resources:
+        limits:
+          memory: 120M
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - IMAGE_PROVIDER_PORT=8081
+      - OTEL_COLLECTOR_HOST=otel-collector
+      - OTEL_COLLECTOR_PORT_GRPC=4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=low
+      - OTEL_SERVICE_NAME=image-provider
+    depends_on:
+      otel-collector:
+        condition: service_started
+    logging: *logging
+
+  load-generator:
+    image: aussiearef/newrelic:load-generator
+    container_name: load-generator
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
+    restart: unless-stopped
+    ports:
+      - "8089:8089"
+    environment:
+      - LOCUST_WEB_PORT=8089
+      - LOCUST_USERS=10
+      - LOCUST_HOST=http://frontend:8060
+      - LOCUST_HEADLESS=false
+      - LOCUST_AUTOSTART=true
+      - LOCUST_BROWSER_TRAFFIC_ENABLED=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=low
+      - OTEL_SERVICE_NAME=load-generator
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      - LOCUST_WEB_HOST=0.0.0.0
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - FLAGD_OFREP_PORT=8014
+    depends_on:
+      frontend:
+        condition: service_started
+      flagd:
+        condition: service_started
+    logging: *logging
+
+  payment:
+    image: aussiearef/newrelic:payment
+    container_name: payment
+    deploy:
+      resources:
+        limits:
+          memory: 140M
+    restart: unless-stopped
+    ports:
+      - "50051:50051"
+    environment:
+      - IPV6_ENABLED=false
+      - PAYMENT_PORT=50051
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8015
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=critical
+      - OTEL_SERVICE_NAME=payment
+    depends_on:
+      otel-collector:
+        condition: service_started
+      flagd:
+        condition: service_started
+    logging: *logging
+
+  product-catalog:
+    image: aussiearef/newrelic:product-catalog
+    container_name: product-catalog
+    deploy:
+      resources:
+        limits:
+          memory: 20M
+    restart: unless-stopped
+    ports:
+      - "3550:3550"
+    environment:
+      - PRODUCT_CATALOG_PORT=3550
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - GOMEMLIMIT=16MiB
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=high
+      - OTEL_SERVICE_NAME=product-catalog
+      - OTEL_SEMCONV_STABILITY_OPT_IN=database
+      - DB_CONNECTION_STRING=postgres://astronomy_user:astronomy_pass@astronomy-db:5432/astronomy_db?sslmode=disable
+    depends_on:
+      otel-collector:
+        condition: service_started
+      flagd:
+        condition: service_started
+      astronomy-db:
+        condition: service_started
+    logging: *logging
+
+  product-reviews:
+    image: aussiearef/newrelic:product-reviews
+    container_name: product-reviews
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      - PRODUCT_REVIEWS_PORT=8084
+      - OTEL_PYTHON_LOG_CORRELATION=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=medium
+      - OTEL_SERVICE_NAME=product-reviews
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      - DB_CONNECTION_STRING=host=astronomy-db user=astronomy_user password=astronomy_pass dbname=astronomy_db
+      - PRODUCT_CATALOG_ADDR=product-catalog:3550
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - LLM_HOST=llm
+      - LLM_PORT=8000
+      - LLM_BASE_URL=http://llm:8000/v1
+      - OPENAI_API_KEY
+      - LLM_MODEL=gpt-4o-mini
+    depends_on:
+      product-catalog:
+        condition: service_started
+      llm:
+        condition: service_started
+      astronomy-db:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    logging: *logging
+
+  quote:
+    image: aussiearef/newrelic:quote
+    container_name: quote
+    deploy:
+      resources:
+        limits:
+          memory: 40M
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      - IPV6_ENABLED=false
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_PHP_AUTOLOAD_ENABLED=true
+      - QUOTE_PORT=8090
+      - OTEL_PHP_INTERNAL_METRICS_ENABLED=true
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=low
+      - OTEL_SERVICE_NAME=quote
+    depends_on:
+      otel-collector:
+        condition: service_started
+    logging: *logging
+
+  recommendation:
+    image: aussiearef/newrelic:recommendation
+    container_name: recommendation
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      - RECOMMENDATION_PORT=8085
+      - PRODUCT_CATALOG_ADDR=product-catalog:3550
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+      - OTEL_PYTHON_LOG_CORRELATION=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=medium
+      - OTEL_SERVICE_NAME=recommendation
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+    depends_on:
+      product-catalog:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+      flagd:
+        condition: service_started
+    logging: *logging
+
+  shipping:
+    image: aussiearef/newrelic:shipping
+    container_name: shipping
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    restart: unless-stopped
+    ports:
+      - "50050:50050"
+    environment:
+      - IPV6_ENABLED=false
+      - SHIPPING_PORT=50050
+      - QUOTE_ADDR=${QUOTE_ADDR}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=high
+      - OTEL_SERVICE_NAME=shipping
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+    depends_on:
+      otel-collector:
+        condition: service_started
+    logging: *logging
+
+  # ******************
+  # Dependent Services
+  # ******************
+
+  flagd:
+    image: ghcr.io/open-feature/flagd:latest
+    container_name: flagd
+    deploy:
+      resources:
+        limits:
+          memory: 75M
+    restart: unless-stopped
+    environment:
+      - FLAGD_OTEL_COLLECTOR_URI=otel-collector:4317
+      - FLAGD_METRICS_EXPORTER=otel
+      - GOMEMLIMIT=60MiB
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=low
+      - OTEL_SERVICE_NAME=flagd
+    command: [
+      "start",
+      "--uri",
+      "file:./etc/flagd/demo.flagd.json"
+    ]
+    ports:
+      - "8013:8013"
+      - "8014:8014"
+      - "8015:8015"
+    volumes:
+      - ./src/flagd:/etc/flagd
+    logging: *logging
+
+  flagd-ui:
+    image: aussiearef/newrelic:flagd-ui
+    container_name: flagd-ui
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+    restart: always
+    environment:
+      - FLAGD_UI_PORT=4000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=low
+      - OTEL_SERVICE_NAME=flagd-ui
+      - SECRET_KEY_BASE=yYrECL4qbNwleYInGJYvVnSkwJuSQJ4ijPTx5tirGUXrbznFIBFVJdPl5t6O9ASw
+      - PHX_HOST=localhost
+    ports:
+      - "4000:4000"
+    depends_on:
+      otel-collector:
+        condition: service_started
+      flagd:
+        condition: service_started
+    volumes:
+      - ./src/flagd:/app/data
+
+  llm:
+    image: aussiearef/newrelic:llm
+    container_name: llm
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    restart: unless-stopped
+    ports:
+      - "8086:8000"
+    environment:
+      - FLAGD_HOST=flagd
+      - FLAGD_PORT=8013
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 45s
+    depends_on:
+      flagd:
+        condition: service_started
+    logging: *logging
+
+  telemetry-docs:
+    image: aussiearef/newrelic:telemetry-docs
+    container_name: telemetry-docs
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      - TELEMETRY_DOCS_PORT=8082
+      - OTEL_COLLECTOR_HOST=otel-collector
+      - OTEL_COLLECTOR_PORT_GRPC=4317
+      - OTEL_SERVICE_NAME=telemetry-docs
+    logging: *logging
+
+  astronomy-db:
+    image: postgres:16-alpine
+    container_name: astronomy-db
+    deploy:
+      resources:
+        limits:
+          memory: 80M
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    command: postgres -c shared_preload_libraries=pg_stat_statements
+    environment:
+      - POSTGRES_PASSWORD=astronomy_pass
+      - POSTGRES_USER=astronomy_user
+      - POSTGRES_DB=astronomy_db
+    volumes:
+      - ./src/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    logging: *logging
+
+  valkey-cart:
+    image: valkey/valkey:7.2-alpine
+    container_name: valkey-cart
+    user: valkey
+    deploy:
+      resources:
+        limits:
+          memory: 20M
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    logging: *logging
+
+  # ********************
+  # Telemetry Components
+  # ********************
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+    restart: unless-stopped
+    command:
+      - --config=/etc/otelcol-config.yml
+    user: 0:0
+    volumes:
+      - /:/hostfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./otel-config.yml:/etc/otelcol-config.yml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    logging: *logging
+    environment:
+      - NEW_RELIC_API_KEY=${NEW_RELIC_API_KEY}
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: grafana
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+    restart: unless-stopped
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_PROVIDERS_DISABLE_GPL_CHECK=true
+    ports:
+      - "${GRAFANA_WEB_PORT:-8080}:3000"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    container_name: jaeger
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+    restart: unless-stopped
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+
