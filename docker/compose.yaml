@@ -251,6 +251,7 @@ services:
       - ENVOY_ADMIN_PORT=19000
       - FLAGD_HOST=flagd
       - FLAGD_PORT=8013
+      - FLAGD_UI_HOST=flagd-ui
       - FLAGD_UI_PORT=4000
       - TELEMETRY_DOCS_HOST=telemetry-docs
       - TELEMETRY_DOCS_PORT=8082
@@ -525,7 +526,32 @@ services:
       - ./src/flagd:/etc/flagd
     logging: *logging
 
-  
+  flagd-ui:
+    image: aussiearef/newrelic:flagd-ui
+    container_name: flagd-ui
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+    restart: always
+    environment:
+      - FLAGD_UI_PORT=4000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_RESOURCE_ATTRIBUTES=service.criticality=low
+      - OTEL_SERVICE_NAME=flagd-ui
+      - SECRET_KEY_BASE=yYrECL4qbNwleYInGJYvVnSkwJuSQJ4ijPTx5tirGUXrbznFIBFVJdPl5t6O9ASw
+      - PHX_HOST=localhost
+    ports:
+      - "4000:4000"
+    depends_on:
+      otel-collector:
+        condition: service_started
+      flagd:
+        condition: service_started
+    volumes:
+      - ./src/flagd:/app/data
+
   llm:
     image: aussiearef/newrelic:llm
     container_name: llm
