@@ -1,32 +1,38 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-env
 WORKDIR /App
 COPY . ./
 
 RUN dotnet restore
-RUN dotnet publish -c Release -o out -r linux-x64
+RUN dotnet publish -c Release -o out 
 
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /App
 COPY --from=build-env /App/out .
 
-# Install the agent
 RUN apt-get update && apt-get install -y wget ca-certificates gnupg \
-&& echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' | tee /etc/apt/sources.list.d/newrelic.list \
-&& wget https://download.newrelic.com/548C16BF.gpg \
-&& apt-key add 548C16BF.gpg \
-&& apt-get update \
-&& apt-get install -y 'newrelic-dotnet-agent' \
-&& rm -rf /var/lib/apt/lists/*
+ && wget -O- https://download.newrelic.com/NEWRELIC_APT_2DAD550E.public \
+ | gpg --dearmor -o /usr/share/keyrings/newrelic.gpg \
+ && echo "deb [signed-by=/usr/share/keyrings/newrelic.gpg] http://apt.newrelic.com/debian/ newrelic non-free" \
+ > /etc/apt/sources.list.d/newrelic.list \
+ && apt-get update \
+ && apt-get install -y newrelic-dotnet-agent \
+ && rm -rf /var/lib/apt/lists/*
 
 # Enable the agent
 ENV CORECLR_ENABLE_PROFILING=1 \
 CORECLR_PROFILER={36032161-FFC0-4B61-B559-F6C5D41BAE5A} \
 CORECLR_NEWRELIC_HOME=/usr/local/newrelic-dotnet-agent \
 CORECLR_PROFILER_PATH=/usr/local/newrelic-dotnet-agent/libNewRelicProfiler.so \
-NEW_RELIC_LICENSE_KEY= \
-NEW_RELIC_APP_NAME="Dotnet Linux"
+NEW_RELIC_LICENSE_KEY=91a3b2590dfcfd0569af9ed4b47cbdccb3fcNRAL \
+NEW_RELIC_APP_NAME="Docker Demo"
 
-EXPOSE 80
 
-ENTRYPOINT ["dotnet","dotnet-app.dll"]
 
+
+EXPOSE 5000
+
+ENTRYPOINT ["dotnet", "dotnet-app.dll", "--urls", "http://+:5000"]
+
+# You need 'buildx' plugin to build this docker image for multi-architecture.
+# Example:
+# docker buildx build \ --platform linux/amd64  -t dotnet-app:nr .
