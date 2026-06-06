@@ -1,0 +1,39 @@
+
+# Instruction for deploying NewRelic .NET Agent on Ubuntu on 24.04 LTS ("Noble Numbat") and later.
+# If you are using Ubuntu 23.04 and earlier, get the commands from New Relic.
+
+echo 'deb [signed-by=/usr/share/keyrings/newrelic.gpg] https://apt.newrelic.com/debian/ newrelic non-free' | sudo tee /etc/apt/sources.list.d/newrelic.list
+wget -O- https://download.newrelic.com/NEWRELIC_APT_2DAD550E.public \
+  | sudo gpg --dearmor --yes -o /usr/share/keyrings/newrelic.gpg
+sudo apt-get update
+sudo apt-get install -y newrelic-dotnet-agent
+source /etc/profile.d/newrelic-dotnet-agent-path.sh && \
+source /usr/local/newrelic-dotnet-agent/setenv.sh
+
+
+
+# Instruction for deploying NewRelic .NET Agent on Amazon Linux 
+sudo rm -f /etc/pki/rpm-gpg/RPM-GPG-KEY-NewRelic
+sudo curl -fsSL \
+  https://download.newrelic.com/NEWRELIC_APT_2DAD550E.public \
+  -o /etc/pki/rpm-gpg/RPM-GPG-KEY-NewRelic
+sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-NewRelic
+cat << 'REPO' | sudo tee /etc/yum.repos.d/newrelic-dotnet-agent.repo
+[newrelic-dotnet-agent-repo]
+name=New Relic .NET Core packages for Enterprise Linux
+baseurl=https://yum.newrelic.com/pub/newrelic/el7/$basearch
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-NewRelic
+REPO
+sudo yum clean all
+sudo yum makecache
+sudo yum -y install newrelic-dotnet-agent
+source /etc/profile.d/newrelic-dotnet-agent-path.sh && source /usr/local/newrelic-dotnet-agent/setenv.sh
+
+
+# After installation of the New Relic .NET Agent, copy the 'newrelic.config' file to your app directory:
+
+sudo cp $CORECLR_NEWRELIC_HOME/newrelic.config <path/to/your-app-root-directory>
+
+# Example: sudo cp $CORECLR_NEWRELIC_HOME/newrelic.config /usr/local/test
