@@ -366,9 +366,10 @@ services:
       - FLAGD_PORT=8013
       - GOMEMLIMIT=16MiB
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_EXPORTER_OTLP_METRICS_TEMOLE_PREFERENCE=cumulative
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
       - OTEL_RESOURCE_ATTRIBUTES=service.criticality=high
       - OTEL_SERVICE_NAME=product-catalog
+      - OTEL_CONFIG_FILE=/otel-config.yaml
       - OTEL_SEMCONV_STABILITY_OPT_IN=database
       - DB_CONNECTION_STRING=postgres://astronomy_user:astronomy_pass@astronomy-db:5432/astronomy_db?sslmode=disable
     depends_on:
@@ -378,6 +379,8 @@ services:
         condition: service_started
       astronomy-db:
         condition: service_started
+    volumes:
+      - ./otel-sdk-config.yml:/otel-config.yaml
     logging: *logging
 
   product-reviews:

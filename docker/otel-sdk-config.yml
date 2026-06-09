@@ -1,0 +1,33 @@
+file_format: "1.0"
+
+resource:
+  attributes:
+    - name: service.criticality
+      value: high
+
+tracer_provider:
+  processors:
+    - batch:
+        exporter:
+          otlp_grpc:
+            endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+
+meter_provider:
+  readers:
+    - periodic:
+        exporter:
+          otlp_grpc:
+            endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+            temporality_preference: ${OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE}
+
+logger_provider:
+  processors:
+    - batch:
+        exporter:
+          otlp_grpc:
+            endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+
+propagator:
+  composite:
+    - tracecontext:
+    - baggage:
