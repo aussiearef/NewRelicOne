@@ -609,6 +609,42 @@ services:
       - ./src/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
     logging: *logging
 
+  db-demo:
+    image: aussiearef/newrelic:db-demo
+    container_name: db-demo
+    restart: unless-stopped
+    ports:
+      - "9001:9001"
+    environment:
+      - DB_HOST=astronomy-db
+      - DB_PORT=5432
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_API_KEY}
+      - NEW_RELIC_MONITOR_MODE=true
+      - NEW_RELIC_APP_NAME=DB DEMO
+      - NEW_RELIC_ENABLED=true
+      - NEW_RELIC_TRANSACTION_TRACER_EXPLAIN_THRESHOLD=0.0
+    depends_on:
+      astronomy-db:
+        condition: service_started
+
+    logging: *logging
+
+  db-demo-caller:
+    image: curlimages/curl:latest
+    container_name: db-demo-caller
+    restart: unless-stopped
+    command: >
+      sh -c "
+      while true; do
+        echo 'Calling db-demo';
+        curl -s http://db-demo:9001/ > /dev/null;
+        sleep 20;
+      done
+      "
+    depends_on:
+      db-demo:
+        condition: service_started
+
   valkey-cart:
     image: valkey/valkey:7.2-alpine
     container_name: valkey-cart
