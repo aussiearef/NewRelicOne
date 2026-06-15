@@ -1,0 +1,18 @@
+# Service Name in New Relic
+export OTEL_SERVICE_NAME="Open AI Monitoring Demo - OTEL"
+
+# OpenAI Authentication
+export OPENAI_API_KEY="your_openai_key"
+
+# Define the New Relic OTLP endpoint (US region data center default)
+export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="https://otlp.nr-data.net/v1/metrics"
+export OTEL_EXPORTER_OTLP_METRICS_PROTOCOL="http/protobuf"
+
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT="https://otlp.nr-data.net/v1/traces"
+export OTEL_EXPORTER_OTLP_TRACES_PROTOCOL="http/protobuf"
+
+# Pass your ingest licence key as the required authentication header
+export OTEL_EXPORTER_OTLP_HEADERS="api-key=your ingestion key"
+
+# Opt-in to capture the raw prompt and response strings in your spans
+export OTEL_INSTRUMENTATION_OPENAI_CAPTURE_CONTENT="true"

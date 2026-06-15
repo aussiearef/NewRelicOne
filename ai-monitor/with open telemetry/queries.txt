@@ -1,0 +1,8 @@
+SELECT average(`gen_ai.usage.input_tokens`) as 'Input', 
+       average(`gen_ai.usage.output_tokens`) as 'Output' 
+FROM Span WHERE service.name = 'Open AI Monitoring Demo - OTEL' TIMESERIES
+
+
+# LLM's RESPONSE TIME 
+SELECT average(`duration.ms`) as response_time 
+FROM Span WHERE service.name = 'Open AI Monitoring Demo - OTEL' AND name='openai.chat' TIMESERIES 
