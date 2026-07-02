@@ -1,0 +1,4 @@
+SELECT count(*), filter(count(*), WHERE severity.text='ERROR') 
+FROM Log 
+SINCE 30 minutes ago 
+TIMESERIES 

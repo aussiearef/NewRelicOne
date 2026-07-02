@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+DELETE FROM customers;
+DELETE FROM products;
+DELETE FROM orders;
+DELETE FROM order_items;
+
 INSERT INTO customers (name, email) VALUES
 ('John Doe', 'john.doe@example.com'),
 ('Jane Smith', 'jane.smith@example.com'),

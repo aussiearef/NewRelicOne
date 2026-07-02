@@ -1,0 +1,4 @@
+SELECT percentage(count(*), WHERE duration.ms < 10) 
+FROM Span 
+WHERE `category`='datastore'
+TIMESERIES 

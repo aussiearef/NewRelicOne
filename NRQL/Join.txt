@@ -1,0 +1,11 @@
+FROM Span
+INNER JOIN (
+ FROM Log
+ SELECT count(*) AS `ErrorCount` , latest(`message`) AS `message`
+ WHERE `severity.text` = 'ERROR' AND `message` IS NOT NULL
+ FACET `service.name`
+ LIMIT MAX
+ ) ON `service.name`
+SELECT latest(`ErrorCount`) AS `ErrorCount` , average(`duration.ms`) AS `duration` , latest(`message`) AS `message`
+FACET `service.name`
+SINCE last week

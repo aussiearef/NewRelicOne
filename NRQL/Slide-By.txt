@@ -1,0 +1,6 @@
+SELECT average(`duration.ms`) AS 'P95 Latency'
+FROM Span
+WHERE category='http'
+SINCE 60 minutes ago 
+WITH TIMEZONE 'Australia/Sydney'
+TIMESERIES 5 minutes SLIDE BY 1 minute
