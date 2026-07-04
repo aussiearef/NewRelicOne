@@ -1,0 +1,10 @@
+FROM (
+
+FROM Log
+  SELECT count(*) AS logCount 
+  WHERE `severity.text`='ERROR'
+  FACET `entity.name`
+)
+ SELECT *
+ WHERE logCount >200
+  SINCE 1 hour ago 
