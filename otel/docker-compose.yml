@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+
+    ports:
+      # OTLP gRPC receiver
+      - "4317:4317"
+
+      # OTLP HTTP receiver
+      - "4318:4318"
+
+      # Collector health check
+      - "13133:13133"
+
+    volumes:
+      - otel-config:/etc/otelcol-contrib
+
+    networks:
+      - observability
+
+    command:
+      - "--config=/etc/otelcol-contrib/config.yaml"
+
+
+networks:
+  observability:
+    name: observability
+
+
+volumes:
+  otel-config:
+    name: otel-config
