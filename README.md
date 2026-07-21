@@ -2,7 +2,7 @@
 
 Welcome to the repository for the online course "New Relic: From Beginner to Advanced." This course is designed to introduce you to the fundamentals of New Relic One and gradually advance your skills to an advanced level.
 
-[![New Relic One Course](https://img-c.udemycdn.com/course/750x422/1733814_8701_4.jpg)](https://www.udemy.com/course/new-relic-apm-application-performance-management-for-devops/?referralCode=E3AB7C6B7055A4C4656C)
+[![New Relic One Course](https://img-c.udemycdn.com/course/750x422/1733814_8701_5.jpg)](https://www.udemy.com/course/new-relic-apm-application-performance-management-for-devops/?referralCode=E3AB7C6B7055A4C4656C)
 
 ## Course Overview
 
