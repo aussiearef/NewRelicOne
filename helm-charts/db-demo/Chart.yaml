@@ -1,0 +1,6 @@
+apiVersion: v2
+name: db-demo
+description: Deploys the DB Demo application
+type: application
+version: 0.1.0
+appVersion: "db-demo"

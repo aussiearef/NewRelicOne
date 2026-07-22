@@ -1,0 +1,10 @@
+replicaCount: 1
+
+image:
+  repository: aussiearef/newrelic
+  tag: db-demo
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80

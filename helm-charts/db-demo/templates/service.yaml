@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-demo
+spec:
+  selector:
+    app: db-demo
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: 80
+  type: {{ .Values.service.type }}
